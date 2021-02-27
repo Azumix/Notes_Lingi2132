@@ -4,9 +4,9 @@ jobs:
   build_latex:
     runs-on: ubuntu-latest
     env:
-      FINAL_FILENAME: Notes/LINGI2132_notes.pdf
-      LATEX_FILENAME: Notes/main.pdf
-      MAIN_LATEX: Notes/main.tex
+      FINAL_FILENAME: LINGI2132_notes.pdf
+      LATEX_FILENAME: main.pdf
+      MAIN_LATEX: main.tex
       DATE_TIMEZONE: Europe/Brussels
     steps:
       - name: Set up Git repository
