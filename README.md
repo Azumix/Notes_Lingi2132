@@ -2,11 +2,15 @@
 
 Notes for LINGI2132 - Languages & Translators course given at UCLouvain by Nicolas Laurent.
 
+Course lectures can be found [on Youtube](https://www.youtube.com/channel/UCFmXbkS1GpMEikDZjhKRkKQ).
+
+Link to the main framework used (at the moment) in the course: [Autumn](https://github.com/norswap/autumn).
+
 The directory has the following structures :
 
 ```Python
 project
-│   README.md  
+│   README.md
 │
 └───Notes
 │   │   compile.sh #bash script to compile the Tex files (Unix & Co.)
@@ -34,10 +38,10 @@ project
 
 In order to compile the project you must pass two parameters to the script :
 
-* The name of the main Tex file without extension e.g : main
-* The course label e.g LINGI2132
+- The name of the main Tex file without extension e.g : main
+- The course label e.g LINGI2132
 
-Which lead to the followings commands:  
+Which lead to the followings commands:
 
 ## Unix Based Systems
 
