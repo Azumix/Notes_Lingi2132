@@ -23,7 +23,7 @@ We will go through each step.
         producing an Abstract Syntax Tree (AST)). It also catches syntax errors
         (like missing parenthesis around if in Java). Other kind of errors (like
         something that is not defined by the language) is not a syntax error,
-        thus, the parser cannot catch it.
+        thus, the parser cannot cath it.
     \end{definition}
     \begin{figure}[H]
          \centering
@@ -32,7 +32,7 @@ We will go through each step.
          \label{fig:ast}
     \end{figure}
 
-    Note that lexing is optional while parsing (called scanner-less parser) for
+    Note that lexing is optional while parsing (called scannerless parser) for
     others parsing is actually lexing AND parsing.
 \section{Semantic Analysis}
     It consists of a series of check that is perform on the AST, two mains are
@@ -81,7 +81,7 @@ We will go through each step.
          \caption{C\# pipeline}
          \label{fig:csharp_pipe}
     \end{figure}
-    This one generate bytecode (Java name), that use usable but that
+    This one generate bytecode (Java name), that use useable but that
     won't be directly use by the machine. After the generation of the bytecode,
     it is passed to a Just In Time Compiler (JIT). What is done until JIT is
     done at compilation time, JIT and the following is done while running the program! 
@@ -211,4 +211,4 @@ We will go through each step.
                 }
             \end{lstlisting}
             Which is much more efficient! Thanks to that we can see that there
-            is a complementary between constant folding and inlining.
+            is a complementarity between constant folding and inlining.

@@ -130,7 +130,7 @@
                 \end{itemize}
         \end{itemize}
         See parser.java file. Note that, in order to be sure our implementation
-        really work, we can use the debugger and check for the pos cursor at the
+        really work, we can use the debuger and check for the pos cursor at the
         end, or to go further we could also inspect the parse tree if we have
         build one. 
 

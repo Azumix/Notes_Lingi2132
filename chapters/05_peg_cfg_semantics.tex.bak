@@ -18,7 +18,7 @@
     \begin{definition}[Parsing Tool]
         Generate and/or runs parsers
     \end{definition}
-    Two types of formalism : 
+    Two types of formalisms : 
     \begin{itemize}
         \item CFG (Context-Free-Grammar)
         \item PEF (Parsing Expression Grammar)
