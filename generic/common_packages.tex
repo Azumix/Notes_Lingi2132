@@ -1,0 +1,66 @@
+\usepackage{ae,lmodern} %actual fonts for accents
+\usepackage[utf8]{inputenc} %encoded used
+\usepackage[T1]{fontenc} %correct accent
+\usepackage{natbib} %customize bib
+
+\usepackage[english]{babel} %language settings, could be français
+\usepackage{graphicx} %images
+\usepackage[a4paper,width=150mm,top=25mm,bottom=25mm]{geometry} %A4 specification
+\usepackage[nottoc]{tocbibind} %customisable toc
+\usepackage{float} %placement specifier
+\usepackage{hyperref} %hyperlinks
+\usepackage{listings} %source code listing
+\usepackage{pdflscape} %allow landscape pages 
+\usepackage{xcolor} %allow colors
+\usepackage{caption} %allow caption
+\usepackage{subcaption} %allow subcaption
+\usepackage{amsmath} %math env
+\usepackage{amsthm} %theorem evn
+\usepackage{amssymb} %for additionnal math symbol
+\usepackage{amsfonts} %allow big N
+\usepackage{lstautogobble} %allow code on left
+\usepackage{fancyhdr} % fancy headers/footers
+\pagestyle{fancy}
+\setlength{\parskip}{0.5em}
+\usepackage{color,soul} % allow \hl to highlight text
+\usepackage{sectsty} %section color
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+
+%Add color and redefine style
+\definecolor{RichBlack}{RGB}{0, 16, 33}
+\definecolor{WarmNlack}{RGB}{3, 71, 72}
+\definecolor{StarCommandBlue}{RGB}{20, 129, 186}
+\definecolor{CyanProcess}{RGB}{17, 181, 228}
+\definecolor{CeruleanCrayola}{RGB}{12, 170, 220}
+
+\definecolor{GrayX11}{RGB}{191, 189, 193}
+\definecolor{DimGray}{RGB}{109, 106, 117}
+\definecolor{BlackCoffee}{RGB}{55, 50, 62}
+\definecolor{GoldMetallic}{RGB}{222, 184, 65}
+\definecolor{Marigold}{RGB}{222, 158, 54}
+\definecolor{RoyalBlue}{cmyk}{1, 0.50, 0, 0}
+
+\chapterfont{\color{CeruleanCrayola}}
+\sectionfont{\color{CyanProcess}}
+\subsectionfont{\color{StarCommandBlue}}
+\subsubsectionfont{\color{WarmNlack}}
+
+\lstset{
+    language=Python,
+    keywordstyle=\color{RoyalBlue},
+    numberstyle=\tiny,
+    deletekeywords={from,in,and},
+    morekeywords={function,Algorithm,algorithm, then,do},
+    mathescape=true,
+    numbers=left,
+    xleftmargin=.04\textwidth,
+    breaklines=true,
+    columns=fullflexible,
+    flexiblecolumns=true,
+    autogobble=true
+}
+

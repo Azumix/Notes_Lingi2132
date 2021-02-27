@@ -1,0 +1,31 @@
+\documentclass{report}
+\input{generic/common_packages}
+
+\graphicspath{ {img/generic/} {img/chap2/} {img/chap3/} {img/chap4/} {img/chap5/}}
+
+\begin{document}
+
+\include{generic/title}
+\pagestyle{empty}
+{
+  \renewcommand{\thispagestyle}[1]{}
+  \tableofcontents
+}
+\clearpage
+\pagestyle{fancy}
+
+\setcounter{page}{1}
+\include{chapters/01_Introduction}
+\include{chapters/02_Compilation_Pipeline}
+\include{chapters/03_Formal_Grammars_Introduction}
+\include{chapters/04_Parsers}
+\include{chapters/05_peg_cfg_semantics}
+
+%\appendix
+%\chapter{Appendix Title}
+%\input{chapters/Appendix}
+
+%\bibliographystyle{plain}
+%\bibliography{generic/references}
+
+\end{document}
