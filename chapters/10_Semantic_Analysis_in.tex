@@ -72,5 +72,91 @@ semantic analysis with an AST.
         \subsubsection{More...}
             Languages like Whiley / Dafny / Rust that statically does thinks.
 \section{The Hindley-Milner Type System}
+    \subsection{Introduction}
+        Type system for polymorphic lambda calculus (System F). It is used in
+        practice as it is the base of Haskell and ML type system. Also it can be
+        extended in various ways.
+    \subsection{Lambda calculus}
+        \subsubsection{Lambda calculus}
+            Toy language that is written this way : 
+            $e::= x | (\lambda x.e) | (e e)$ variable/Abstraction/application
 
+        \subsubsection{Simply-Typed Lambda calculus}
+         $e::= x | (\lambda x:\tau.e) | (e e) | c$ where $\tau$ us the
+        parameter type and c a constant. Note that, we need a set of base types
+        e.g B = \{a, b\}. We do need constant c, because unlike classical lambda
+        calculus we do not have the Church encoding (define number as function).
+
+        \subsubsection{Polymorphic lambda calculus}
+            The idea is to type the original lambda calculus without the type
+            annotations \\ $e ::= x | (\lambda x.e) | (e e) | let x = e \text{ in } e$
+    \subsection{Type system}
+        \theoremstyle{definition}
+        \begin{definition}[Type system]
+            A formal system(formalism) that determines :
+            \begin{itemize}
+                \item if any expression in the language is well-typed
+                \item type of any such expression
+                \item $e::= x | (\lambda x:\tau .e) | (e e) | c$
+                \item ill-typed: $((\lambda x:a . x) c1)$ where c1 has type b
+            \end{itemize}
+        \end{definition}
+
+        We would like the type system to be :
+        \begin{itemize}
+            \item \textbf{Decidability} : can make a decision
+            \item \textbf{Soundness} : everything we can prove is true
+            \item \textbf{Completeness} : we can prove everything that is true
+        \end{itemize}
+        However the Gödel's incompleteness theorem says that "No sound system of
+        axioms describing natural number arithmetic can be complete". Still, if
+        we look in practice, Java does not have any of the previous properties... 
+
+        \subsubsection{For $\lambda$}
+            \begin{figure}[H]
+                 \centering
+                 \includegraphics[scale=0.4]{type_system.png}
+                 \caption{Type system for $\lambda$}
+                 \label{fig:type_system}
+            \end{figure}
+    \subsection{Towards Hindley-Milner}
+        The key idea is : function can have many types (polymorphism). Why is it
+        important? Because we really need polymorphism in order to be able to
+        write rule like $((\lambda id . ((foo (id 1)) (id 's'))) (\lambda x .
+        x))$ without polymorphism, the identity function that we use should be
+        declared as integer or char with polymorphism it can return both!
+
+        \subsubsection{Generalization}
+            \begin{figure}[H]
+                \centering
+                \includegraphics[scale=0.4]{Generalization.png}
+                \caption{Generalization}
+                \label{fig:Generalization}
+            \end{figure}
+            Still, it this step we cannot apply the function as we still have
+            the polymorphic type and not a specialized type.
+        \subsubsection{Intantiation}
+            Allow us to specify a type from polymorphic type!
+            \begin{figure}[H]
+                \centering
+                \includegraphics[scale=0.4]{Intantiation.png}
+                \caption{Instantiation}
+                \label{fig:instantiation}
+            \end{figure}
+
+        \subsubsection{Let polymorphism}
+            The let rule allow us to go to a monomorphic type!
+            \begin{figure}[H]
+                 \centering
+                 \includegraphics[scale=0.4]{let.png}
+                 \caption{Let polymorphism}
+                 \label{fig:let}
+            \end{figure}
+            We just need to rewrite it like : 
+            $let id = (\lambda x . x) in ((foo (id 1)) (id 's'))$
+    \subsection{Type system vs Typing algorithm}
+        Thanks to inference rules we have the semantics of the type system.
+        Rules allow us to prove statements about types, as the system is sound
+        the created statements are true. However, the way to prove statements is
+        not given (algorithm is needed for that).
 \section{Using Uranium}
