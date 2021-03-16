@@ -88,3 +88,125 @@ parsing.
             recurse) 
         \end{itemize}
 \section{LR}
+    LR algorithm is the most difficult parsing algorithm that we'll see. Still,
+    it is not the most difficult one (hello GLR). The goal of LR is to parse
+    every deterministic grammar. Every grammar can be parsed in $\mathcal{O}(n)$
+    without backtracking (we cannot explore different alternatives). Hence, it
+    is not the same as LL(1) as LL(1) decides eagerly and ignores the context.
+
+    \theoremstyle{definition}
+    \begin{definition}[LR parsing]
+        LR = Left-to-right Rightmost derivation.
+        It always expand the right non-terminal first.
+
+        Essentially done by DPDA:
+            \begin{itemize}
+                \item Stack on which symbols can be pushed (terminal and
+                non-terminals)
+                \item Performs a table lookup based on the stack and some tokens
+                of lookahead(LL(1)/LL(k))
+            \end{itemize}
+    \end{definition}
+    \subsection{Shift and reduce}
+        The algorithm use a table that maps the stack to one of the two actions : 
+        \begin{enumerate}
+            \item shift : the next terminal onto the stack
+            \item reduce : items at the top of the stack to a non-terminal.
+        \end{enumerate}
+        
+        If we take our JSON grammar, an example would be :
+        \begin{enumerate}
+            \item remaining input \{ "x": 1\} Stack : []
+            \item Shift x4 times
+            \item Reduce to PAIR Stack : [ \{, "x", :, 1 ]
+            \item Reduce to TPAIRS(from $\epsilon$) Stack : [ \{, PAIR ]
+            \item Reduce to PAIRS Stack : [ \{, PAIR, TPAIRS ]
+            \item Reduce to PAIRS? Stack : [ \{, PAIRS ]
+            \item Shift Stack : [ \{, PAIRS? \}]
+            \item Reduce to OBJECT Stack : [OBJECT] -> VALUE 
+        \end{enumerate}
+    \subsection{LR Conflicts}
+        \paragraph{REDUCE/REDUCE conflicts}
+            \begin{itemize}
+                \item Rare case, it means the same set of symbols can be reduced
+                to the same non-terminal, in the same context (same input prefix)
+                \item Same portion of input could be matched to different non
+                terminals (ambiguity)
+                \item Non-trivial example can also appear using optional rules.
+            \end{itemize}
+        \paragraph{SHIFT/REDUCE conflicts}
+            A famous problem for this is 
+            \begin{lstlisting}[language=Java]
+                if (a) if (b) s1(); else s2();
+            \end{lstlisting}
+            The else can be interpreted as the false condition of the outer or
+            of the inner if. Depending on that, the sequence of shift/reduce
+            will not be the same. That's why parsing tool let us define
+            instruction for that (common default behavior is to prioritize shift
+            over reduce).
+    \subsection{Ambiguity}
+        \theoremstyle{definition}
+        \begin{definition}[Ambiguity]
+            Ambiguity appear when there are multiple way to parse the same input : 
+            \begin{itemize}
+                \item Different (combination of) rules can match the same input
+                \item Simulating different derivations
+                \item Generating different plain parse trees
+            \end{itemize}
+        \end{definition}
+
+        It is undecidable for CFGs. Note that deterministic grammars are
+        unambiguous. Determinism is decidable (non-determinism = conflict).
+        Thus, ambiguity $\implies$ Non-determinism, by modus tollens
+        Determinism $\implies$ Unambiguity.
+
+        However, it exists unambiguous, non-deterministic grammars (palindrome
+        language).
+
+        In the end, what is not LR ? 
+        \begin{itemize}
+            \item Ambiguous grammars
+            \item Corner-case speculative scenarios like above (rare case)
+        \end{itemize}
+    \subsection{LR building table}
+        This is the most difficult part of LR, but it is not needed to be able
+        to use LR and its variants.
+    \subsection{Variants}
+        \begin{itemize}
+            \item LR(k): use more lookahead
+            \item LALR: lose some context given by the prefix (smaller tables than LR)
+            \item SLR: lose all context given by prefix (even smaller tables)
+            \item IELR: True LR, tables as small as LALR
+            \item GLR: can parse every CFG in $\mathcal{O}(n^3)$, deterministic
+            ones in $\mathcal{O}(n)$
+        \end{itemize}
+        See some examples of LALR, SLR and LR(k) in the slides.
+        \subsubsection{GLR}
+            GLR is used when we need to speculate/backtrack we fork the LR
+            stack. It uses graph-structured stacks (GSS). It shares as much of
+            the stack as possible with the possibility to merge stacks down the
+            line. 
+
+            It is a non-deterministic pushdown automaton.
+\section{Other variants for CFG}
+    Some other parsers can parse every CFG grammars.
+    \begin{itemize}
+        \item Early (as seen in Computational Linguistic course)
+        \begin{itemize}
+            \item $\mathcal{O}(n^3)$
+            \item Popular for Linguistic (lots of ambiguity)
+            \item Simplest general parsing algorithm
+        \end{itemize}
+        \item ANTLR/ALL(*)
+        \begin{itemize}
+            \item $\mathcal{O}(n^4)$
+            \item Very popular java parsing tool
+            \item LL(k) + backtracking + caching via automata
+        \end{itemize}
+        \item GLL
+        \begin{itemize}
+            \item $\mathcal{O}(n^3)$
+            \item LL + GSS
+        \end{itemize}
+    \end{itemize}
+\section{}
