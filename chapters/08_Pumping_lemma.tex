@@ -1,2 +1,90 @@
 \chapter{Pumping lemma}
 \label{chap:pumping_lemma}
+
+\section{Recap}
+\theoremstyle{definition}
+\begin{definition}[Grammar]
+    Grammar = ($N, \Sigma, P, s$)
+    \begin{itemize}
+        \item N : Non-terminals
+        \item $\Sigma$: Alphabet (terminals)
+        \item P: Production rules
+        \item Starting Symbol (S $\in$ N)
+        \item $P: N \rightarrow \Sigma * N?$
+    \end{itemize}
+    Matchable by a DFA!
+\end{definition}
+
+Regular languages are capable of expression repetition and optionality thanks to
+the optional final non-terminal. However, it can't do nesting.
+
+We can ask ourself : how to know if a language is regular ? 
+And how to prove (just build the grammar, is that match it works)/disprove (pumping lemma) it?
+\section{Central Recursion}
+    Let's take an example of non-regular language: $A ::= '('A')' | \epsilon$.
+    This is called central recursion. Note that language with central recursion
+    are never regular. That's why C(or Java) does not have nested comments
+
+    A way to check if a language is regular is to check if it is matchable by a
+    DFA (that has only one piece of state, the current one). If we want to match
+    the central recursion, we need an extra counter for the depth. It exists
+    only one way to implement that : using non-terminal in the middle. The
+    problem is : this is not allowed in regular languages. We can proof it using
+    the pumping lemma.
+\newpage
+\section{The Pumping Lemma}
+    \theoremstyle{definition}
+    \begin{definition}[Pumping Lemma]
+        If L is a regular language:
+        \begin{itemize}
+            \item Then it exists an integer $p\geq 1$ specific to L
+            \item Such that every sentence s in L of $length \geq p$ can be
+            written $s = x y z$ satisfying the following conditions :
+            \begin{itemize}
+                \item $|y| \geq 1$
+                \item $| x y| \leq p$
+                \item $\forall n \geq 0, x y^n z \in L$
+            \end{itemize}
+        \end{itemize}
+
+        Every long enough ($p\geq 1$ and specific to L) string in the language
+        can be used to generate longer string through a repeating part (y).
+
+        Note that there is also a corollary : every long enough string can be
+        decomposed into a prefix, a suffix and a repeating part.
+    \end{definition}
+
+    Thanks to the pumping lemma, we can proof that $L = (^k )^k$ is not regular
+    (using contraction). Indeed, as we can show that $x$ and $y$ have to be made
+    only of '(' and that $y$ cannot be empty by definition, if we try to repeat
+    y, the parenthesis are unbalanced! Which is a contradiction.
+
+    The pumping lemma can show us that any finite language is regular! Even a
+    really simple one like $L = a | b | c$. We just need to take a big enough p!
+    (Like $p=2$ in this case).
+
+    \subsection{Why do we need $|x y | \leq p$ ?}
+        If we omit it, we could prove that $L = (^k a+ )^k$ to be regular which
+        is obviously not the case!. We need central recursion to be bounded
+        because of DFA state limit. The constraint ensures we're able to build a
+        maximum depth counter-example.
+    \subsection{Be care}
+        Note the way the pumping lemma is written, it is an implication. That
+        mean $A \implies B \neq B \implies A$. Being able to pump sentences does
+        not make a language regular. However is it a necessary condition in
+        order to be regular.
+    \subsection{In CFGs}
+        The pumping lemma also work in CFGs! The difference is instead of
+        splitting a sentence in 3, we split it in 5 $s = v w x y z \implies v w
+        w x y y z \in L$ the parenthesis language works if we pick w=( and y=)
+        note that a language like $a^k b^k c^k$ does not work. In both case, the
+        pumping lemma can prove it!
+    \subsection{In everything else}
+        We just have to decompose in a pattern : 
+        \begin{itemize}
+            \item X be a set of sets (e.g regular languages)
+            \item An infinite set (language) of objects (sentences) in X can be
+            obtained if long object repeat some sub-elements 
+            \item We can use the pumping lemma to disprove the belonging of a
+            language to X
+        \end{itemize}
