@@ -1,6 +1,76 @@
 \chapter{Semantic Analysis}
 \label{chap:semantic_analysis}
 
+With semantic analysis we begin the next step of our pipeline. We begin the
+semantic analysis with an AST.
+
+\section{Introduction}
+    Semantic analysis allow us to check everything that :
+    \begin{itemize}
+        \item Can be check statically (without running the program) in
+        reasonable time (no real symbolic execution (instead of real input, we
+        use variable. The problem is when we encounter if branching because it
+        multiply the amount of path (exponential) this phenomenon is called
+        combinatorial explosion))
+        \item That we didn't check in the parser (we should check as little as
+        possible in the parser)
+    \end{itemize}
+    \subsection{Check after parsing}
+        We can take the example of Java modifiers if we would like to check that
+        in the parser we would need many rules, for each modifiers, the methods
+        without them, etc. Thus, it would only be for non-abstract classes as
+        the other (like interface) have other constraints. Besides, it does not
+        prevent thing like "protected static" which is forbidden in Java.
+
+        A first better way is to use Autumn parsing combinator, but still we
+        should check that with the semantic analysis. An example of error for
+        the following : public private void test()[] would be : 
+        \begin{itemize}
+            \item Parser : "unexpected token 'private'"
+            \item Semantic: "two visibility modifiers for method"
+        \end{itemize}
+        No need to say that the second one is much better. Also, incorrect ASTs
+        can be use in IDEs (syntax highlighting, etc.)
+    \subsection{Main Concerns}
+        \subsubsection{Type checking}
+            \theoremstyle{definition}
+            \begin{definition}[Type checking]
+                Check type constraints : "int x = "String";" but also type
+                inference : "var x = "string" + 42.
+                If the language is dynamically typed it is done during runtime and libraries.
+            \end{definition}
+
+        \subsubsection{Name Binding}
+            \theoremstyle{definition}
+            \begin{definition}[Name binding]
+                Check where name are defined. e.g : "int x = y + 3;" What is y?
+                Inter-dependency : "var x = a.b.c" we need to know the type of
+                c, that need the type of b, that need the type of a.
+            \end{definition}
+            These two first principle cannot be done separate.
+
+            Note that Name binding also consist of lexical scoping (what is
+            visible or not for a field/inside a method/block etc.). Dynamic
+            scoping can also be done, however is it opposed with lexical
+            scoping. Still it have this advantages! Emacs use this kind of
+            scoping, this allow Emacs to edit Ruby and Python file and handle
+            tabulation in both case.
+        \subsubsection{Flow checks}
+            Flow checks is a complex think, let's take a Java example : 
+            \begin{lstlisting}[language=Java]
+                int test(int x) {
+                    if (x == 3) return 3;
+                }
+                int test2(int x) {
+                    while(true) return 1337;
+                }
+            \end{lstlisting}
+            The first one is an invalid Java program (suppose to return an int
+            but only return it if x==3) and flow checks spot that. The second
+            one is valid because Java detects that the while loop will always be
+            entered.
+        \subsubsection{More...}
+            Languages like Whiley / Dafny / Rust that statically does thinks.
 \section{The Hindley-Milner Type System}
 
 \section{Using Uranium}
