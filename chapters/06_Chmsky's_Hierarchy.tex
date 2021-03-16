@@ -1,0 +1,49 @@
+\chapter{Chomsky's Hierarchy}
+\label{chap:chomskys_hierarchy}
+
+\section{The hierarchy}
+    Chomsky which is a famous linguist also known for his political engagement
+    has defined a hierarchy of grammar :
+    \begin{itemize}
+        \item Type 3: Regular grammars (regular expressions, single non terminal
+        at the end)
+        \begin{itemize}
+            \item $P: N \rightarrow \Sigma * N$
+        \end{itemize}
+        \item Type 2: Context-Free grammars (non terminal string of symbols)
+        \begin{itemize}
+            \item $P: N \rightarrow (\Sigma \cup N)*$
+        \end{itemize}
+        \item Type 1: Context-Sensitive grammars (alpha and beta represent the
+        context)
+        \begin{itemize}
+            \item $P: \alpha N \beta \rightarrow \alpha \gamma \beta$ where
+            ($\alpha, \beta, \gamma \in (\Sigma \cup N)*$)
+        \end{itemize}
+        \item Type 0: Unrestricted grammars
+        \begin{itemize}
+            \item $P: (\Sigma \cup N)+ \rightarrow (\Sigma \cup N)*$
+        \end{itemize}
+    \end{itemize}
+\section{Regular vs CFGs}
+    In regular we have a final non-terminal makes regular languages capable of
+    expression repetition and optionality. Regular cannot express nesting.
+\section{Type 0 and 1}
+    Let's be honnest, they are pretty much useless. Still, the principle behind
+    context sensitivity is useful! Indeed, is func((T) * x) a multiplication or
+    a cast? However CSGs are bad for that (not like Autumn).
+\section{Automaton mapping}
+    \theoremstyle{definition}
+    \begin{definition}[Automaton]
+        Formalisation of an abstract machine
+    \end{definition}
+    A nice thing with the hierarchy is that it can be mapped to automaton : 
+    \begin{itemize}
+        \item Type 3 (Regular grammars) : Deterministic Finite Automaton
+        \item Type 2 (Context-Free grammar) : Nondeterministic (can have
+        multiple transition) Pushdown (use a stack, a transition can push on it
+        or look at it to take a decision) Automaton
+        \item Type 1 (Context-Sensitive grammar) : Linear Bounded Automaton
+        (Finite-tape Turing Machine)
+        \item Type 0 (Unrestricted grammar) : Turing machine
+    \end{itemize}

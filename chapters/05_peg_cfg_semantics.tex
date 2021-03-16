@@ -84,11 +84,154 @@
         These two approaches are very different in the mathematical point of view.
         Also, CFG is easier to defined in the mathematical language, on the other
         hand the PEG is very much related to the practice.
-    \subsection{The difference}
+    \subsection{PEG vs CFG}
         \begin{itemize}
             \item CFG has unordered choices, while derivating we can pick any
             non-terminal we want
             \item PEG has ordered choices, the first matching is the "correct"
             one
         \end{itemize}
-    \subsection{The big difference}
+    \subsection{The differences}
+        Unordered and ordered has a consequence for parsing algorithm. PEG does
+        not test anything after a fail (prefix capture) if the parse failed
+        while CFG can make an other choice!
+        \subsubsection{PEG: Single parse Rule}
+            Once a choice have been made, we never visit it again. As repetition
+            can be desugared to choice it has an impact on them too. Repetition
+            are greedy. (A ::= a* a is empty as a* will consume everything).
+        \subsubsection{Backtracking}
+            Let's take the following grammar : 
+            \begin{itemize}
+                \item A ::= B y z
+                \item B ::= v | x y | x
+                \item input: "xyz"
+            \end{itemize}
+            \begin{figure}[H]
+                \centering
+                \includegraphics[scale=0.3]{PEG_CFG_BA.png}
+                \caption{PEG vs CFG backtracking}
+                \label{fig:peg_cfg_backtrack}
+            \end{figure}
+            This is not the real working way, be it does illustrate the
+            principle. Indeed doing that would lead to exponential time
+            complexity. CFG has horizontal backtracking thanks to is possibility
+            to backtrack on x after trying y.
+        \subsubsection{Ambiguity}
+            It seems that CFG are always better because of what we have seen
+            before. However there is a flip-side : ambiguity. By construction
+            PEG cannot suffer from ambiguity.
+            
+            As a remainder : 
+            \begin{itemize}
+                \item Prefix capture (The rule B will consume all y)
+                \begin{itemize}
+                    \item A ::= B y z
+                    \item B ::= x y | z
+                \end{itemize} 
+                \item Ambiguity (B can be xy or x, C can be z or yz): 
+                \begin{itemize}
+                    \item A ::= B C
+                    \item B ::= x y | x
+                    \item C ::= z | yz
+                \end{itemize}
+            \end{itemize}
+            Ambiguity make the AST creation harder and also has impact on the
+            parser performances.
+        \subsubsection{Performances}
+            The best parsing algorithm for CFG are $\mathcal{O}(n^3)$,
+            deterministic parts of the grammar run in $\mathcal{O}(n)$ (most of
+            useful grammar are deterministic).
+            
+            For PEGs, the regular algorithm is exponential (in theory). Still,
+            it is almost impossible to write an $ \mathcal{O}(x^n)$ exponential
+            parser. However, one often use operation is very inefficient : infix.
+
+            An example can be this one : 
+            \begin{itemize}
+                \item S ::= P '+' S | P '-' S | P
+                \item P ::= N '*' P | N '/' P | N
+                \item N ::= [0-9]+
+            \end{itemize}
+            (Note that PEG does not allow left recursion by definition.) Let's
+            assume we have a parseN function, if we try to parse "42", parse N
+            will be called 9 times! 3 times for P, 3 times for S, 3x3=9. In
+            general : $\mathcal{O}((P+1)^L)$ times with L : precedence levels (2
+            here), P : operators at each level (3 here). 
+
+            A solution for that can be found, for example in Autumn we can write : 
+            \begin{lstlisting}[language=Java]
+                rule P = left_expression()
+                            .operand(N)
+                            .operand('*')
+                            .operand('/'); //Same for S however, operand is P in S, for precedence
+            \end{lstlisting}
+            This rewrite the grammar as : 
+            \begin{itemize}
+                \item S ::= P ( '+' S | '-' S)*
+                \item P ::= N ( '*' P | '/' P)*
+                \item N ::= [0-9]+
+            \end{itemize}
+            P and N will be only called once! Performances are good thanks to
+            that! However we can note that the parse tree won't be nice (not a
+            problem with Autumn as we build an AST explicitly (we give a
+            function to create the nodes)). If we were not using Autumn, we
+            should create the parse tree like that and then, rewrite it
+
+            \paragraph{Packrat Parsers}
+                The single parser rule make memoization very easy! Packrat
+                Parser are PEG parser with memoization. However, some practical
+                experiments have been done in Java shown it is slower. Unless
+                maybe if your language is very slow, or unless your infix
+                expressions are improperly implemented.
+        \subsubsection{Expressivness}
+            \begin{itemize}
+                \item Some PEGs definition cannot be defined with CFG ( A ::=
+                $a^n b^n c^n$ for any same n we want any a b c)
+                \item Some CFGs definition cannot be defined with PEGs (A ::= a
+                A a | b A b | a | b | $\epsilon$)
+                \item Traditional PEG can't use left recursion (use repetition
+                or Autumn to solve that, as they are the only two big case where
+                we need left recursion)
+            \end{itemize}
+        \subsubsection{PEG : Lookahead operators}
+            \begin{itemize}
+                \item \&<expression>, succeeds if the expression succeeds but
+                does not consume any input
+                \item !<expression>, succeeds if the expression fails, does not
+                consume any input
+                \item In theory, \&X == !!X (not true in Autumn)
+            \end{itemize}
+        \subsubsection{PEG misc}
+            PEGs are often use in scannerless parsing (without lexer), ordered
+            and lookahead are very useful at lexical level. PEG allow us to
+            define "reserved works", hence lexing can still be advantageous.
+
+            PEGs are easy to extends thanks to recursive descent (with new
+            combinators).
+\section{Summary}
+    PEG : 
+        \begin{itemize}
+            \item Intentional language = sentences recognized
+            \item Similar to handwritten top down recursive descent parsers
+            \item Desugared to CFG + lookahead
+            \item Single parse rule
+            \item Suffer from prefix capture
+            \item Vertical backtracking
+            \item Deterministic
+            \item Ordered
+            \item Potentially exponential, in practice largely linear (careful
+            with infix)
+        \end{itemize}
+    CFG : 
+        \begin{itemize}
+            \item Extensional language = set of sentences obtained by derivation
+            \item Suffer from ambiguity
+            \item Vertical and horizontal backtracking
+            \item Non deterministic
+            \item Unordered
+            \item $\mathcal{O}(n^3)$ but often linear in practice
+        \end{itemize}
+    In the end, both formalisms are good enough, the real difference is tooling,
+    what is available in the language we want to use, ease of use, features,
+    performances, etc.
+            
