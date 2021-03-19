@@ -57,7 +57,7 @@ semantic analysis with an AST.
             tabulation in both case.
         \subsubsection{Flow checks}
             Flow checks is a complex think, let's take a Java example : 
-            \begin{lstlisting}[language=Java]
+            \begin{lstlisting}[language=Java,label={lst:flow_check}]
                 int test(int x) {
                     if (x == 3) return 3;
                 }
@@ -158,5 +158,38 @@ semantic analysis with an AST.
         Thanks to inference rules we have the semantics of the type system.
         Rules allow us to prove statements about types, as the system is sound
         the created statements are true. However, the way to prove statements is
-        not given (algorithm is needed for that).
+        not given (algorithm is needed for that). 
+        
 \section{Using Uranium}
+\label{sec:using-uranium}
+
+Uranium is a library written in Java. It is inspired by formal grammars,
+attribute grammars and reactive programming. The goal of Uranium is the
+specification of dependencies (using rules) e.g : "the type of a function call
+depends on the type signature of the function being called, and on the type of
+each of the arguments". Thus it is still explicit thanks to code computation and
+verification of attributes.
+
+    \subsection{Attribute grammars}
+        The goal of attributes grammars is to calculate attributes on AST nodes.
+        Many types:
+        \begin{itemize}
+            \item Synthesized attributes : computed from children node attributes
+            \item Inherited attributes : computed from parent node attributes
+            \item Combination of both
+            \item Other have been proposed in practice 
+        \end{itemize}
+
+        It is called this way because it was originally designed within the
+        grammar (which is a bad idea).
+    
+    \subsection{Uranium: Basics}
+        Uranium computes attributes (AST Node, String) pair using rules:
+        \begin{itemize}
+            \item One or more dependency attributes
+            \item One or more exported attributes
+            \item Code that can read the dependency values, write exported values
+            \item Automatically called when all dependency values are available
+            \item All of this is done by the reactor
+        \end{itemize}
+        Check SemanticsAnalysis.java to have an example.
