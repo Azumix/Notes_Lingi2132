@@ -1,0 +1,130 @@
+\chapter{Tree-Walk Interpreter}
+\label{chap:tree_walk_inter}
+Like we have done in the semantic analysis we will traverse a tree in order to
+interpret our document. Indeed as seen in figure \ref{fig:compiler_pipeline} we
+do not have a "compiler" step in the pipeline. However we can replace the two
+last box by an interpreter (or a tree-walk interpreter) or bytecode generation
+and a virtual machine (bytecode interpreter). Many design are possibles!
+Different interpreter works differently, the tree-walk interpreter walks a tree
+that match more closely the source than the structure of sources. Bytecode
+interpreter runs over instructions, so we have to transform our tree in a linear
+way.
+
+
+Tree-walk interpreter/AST interpreters are slow because they do a lot of
+megamorphic calls but also because of their nature, with tree walks interpreter
+we can reuse stuff we already have (AST and semantics analyses) without the need
+to generate other stuff. Still, making this choice make the interpreter slow. If
+we want to speed up the process we can generate many data structure and write a
+bytecode interpreter. In this case, there is no particular trade off, either
+choose simplicity or speed.
+
+Sometimes speed is not to worry (like in DSL) indeed, for code that won't run
+often does not need to be very fast! It also provide developers time (most
+precious resource!) as simpler code is easiest to maintain. Easiest to change
+the tree code than the code generation if we want to change it. It is also
+useful to test implementation (form of redundancy, so can be used to test more
+complicated implementation).
+
+\section{Implementation}
+See slides for examples. One simple implementation is the visitor pattern!
+Another way is dynamic lookup this is implemented in the utility package. It
+allow us to register different methods as we have done in semantic analysis.
+Still, the main difference with semantic is the automatic recursion. Indeed, in
+the semantic part we have define \textit{PRE\_VISIT} and \textit{POST\_VISIT}
+and the semantic analysis does all the job by itself, visiting parent and
+children without explicit control. In the interpreter it is not the case because
+we \textit{\textbf{want}} to control how and when the expression is evaluated.
+
+\subsection{Visitor pattern vs Dynamic lookup}
+\begin{itemize}
+    \item Visitor pattern is much faster (only one virtual call)
+    \item Dynamic lookup is slower (need to look at the Class object) but it is
+    good enough to have a prototype. It is also more extensible as anyone can
+    extend it with handlers for new subclasses (visitor pattern would have
+    needed to edit the visitor interface not always possible!).
+\end{itemize}
+
+\section{Statements}
+We when add statements we simply use what our base language (Java in the course)
+use to evaluate our own node (like \textit{System.out.println} to print
+something). The function always need to return Object as they are still part of
+the interpreter so we have to cast value when we visit and either return a value
+or null of not needed.
+
+\section{Node Hierarchy}
+Everything in our language implement Node, it is fine but we have to be careful
+(indeed, we could use a \textit{print} in the condition of a \textit{if} node).
+In order to avoid that we can use abstract \textit{ExpressionNode} and
+\textit{StatementNode} (has it have been done in the project). These node would
+still implement the global Node but subnode would be create in order to add
+restriction in our language.
+
+\section{Scope}
+Here is a simple idea of dealing with scope (not the best way to do it!) As
+shown in slide 17, we add classes to get the variables from the reactor of the
+semantic analysis. Using a map, we can just set a new variable in it and get it
+with a get function.
+
+Still, this (writing in scope) have a major issue:
+\begin{itemize}
+    \item Recursive function will call multiple instantiations of the same
+    scope. (The value of variable will be override!)
+    \item Reusing the semantic analysis scope won't allow us to reuse the result
+    of semantic in different instantiations of the program we would always need
+    to redo the all compilation pipeline.
+\end{itemize}
+
+A better way of dealing with scope is to use a "Scope storage" using a stack,
+every time a new scope is created (code block, function, etc.) we add a new
+scope to the stack (done in the project). Storages are nested and calling a
+function reset the nesting (when we call a function, we will only get its scope,
+not the scope of the function that called it.).
+
+When we want to lookup:
+\begin{enumerate}
+    \item Get the scope of the node (computed during semantic analysis)
+    \item Traverse nested storage (inner to outer) in order to find the storage that match the scope
+    \item Read/Write the variable.
+\end{enumerate}
+Thanks to function call resetting the nesting we will never find the wrong scope for a variable. 
+
+Still, there are some pitfall with this methods:
+\begin{itemize}
+    \item Global scope : as function call reset the scope/storage we have to
+    code global variables/functions explicitly! (If we find nothing in the
+    created scope, look at the global one, or compare directly the scope get
+    with the global one)
+    \item Closure (nested function that capture outer variables, (environnement,
+    function) pair) can be read-only (Java way, mark closure variable during
+    semantic analysis then create and store the environnement each time the
+    closure is instantiated) or read/write (need a wrapper that allow read/write
+    on the variable)
+\end{itemize}
+
+\begin{lstlisting}[language=Java]
+    void foo(){
+        int x = 42;
+        Runnable bar = () -> {System.out.println(x); x=0;};
+        bar.run(); bar.run(); x=43; bar.run();
+    }
+\end{lstlisting}
+This little example is interesting (even if it does not compile in Java but
+let's assume it does). With the read/write method, the first call will write 42,
+then the variable will be assign to 0, the second call will print 0 while the
+third one will print 43. We have a "bidirectional connection". It we would have
+capture the value of x instead, the second and third call would have only print
+0. 
+
+\section{Tips}
+When designing a language we have to think about many things:
+\begin{itemize}
+    \item How arrays are represented?
+    \item Does our language have null?
+    \item Polymorphism (multiple value type possible) are they Object[] and
+    sometimes optimizes (need to be immutable in that case!)
+    \item For return/break/continue : use exception for control flow!
+    \item Be care if the language is dynamically typed (type checks in the
+    interpreters!)
+    \item Function calls : create the storage for its scope the visit the node for its body.
+\end{itemize}
