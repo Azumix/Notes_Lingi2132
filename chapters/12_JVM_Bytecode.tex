@@ -432,9 +432,62 @@ reached with the stack in the same state (size and types).
 
     The stack can't overflow if you don't recurse.
 
-\section{Conclusion}
+\section{Summary}
     JVM performs stack-based computation, use stacks + locals + constant pool +
     fields. Build in GC (cost of the memory control), built-in JIT complier! JVM
     Bytecode has a low level stack operations, jumps. It can transfers between
     stack and locals, fields, constant pool. It has highly-abstracted
     polymorphic method calls.
+
+\section{Generating Bytecode with ASM}
+ASM is a low level library and comprehensive to generate Bytecode, other
+libraries exists (BCEL, Javassists, etc.). Some interesting libraries are
+ByteBuddy or CGLIB which are focused on higher level patterns (dynamic proxy) it
+is a class that implement an interface automatically typically delegating the
+methods implementation while running code before or after the code
+(verification, log, etc.).
+
+The advantage of ASM is that it handle the constant pool, takes care of the
+stack and space, manage jumps.  
+
+If we want to use ASM, we can use javap to reverse engineer to know what the
+Java compiler would done, read the JavaDoc, manual, Wikipedia page, etc.
+
+\subsection{Notations}
+\subsubsection{Field descriptors}
+Describe the value of type. We only need to define them when we define or access
+a field.
+Here is the table of fields descriptors:
+\begin{figure}[H]
+     \centering
+     \includegraphics[scale=0.4]{fieldDescriptors}
+     \caption{Fields descriptors table}
+     \label{fig:field_descriptors}
+\end{figure}
+Notice that there are some "traps" B is for Byte so Boolean are Z. Long is noted
+as J. Note that class are noted L Classname; so either we read an single letter
+or a semi colon and we know we have to look the the next two inputs. In order to
+describe an array we only need the bracket [ then the type, i.e: [I or [[I dor a
+2D int array. V for void type is not needed here as it is a method descriptor
+and we're looking at field descriptors here.
+\subsubsection{Method descriptor}
+Here is the syntax (<param1 field desc><param2 field desc>...)<return field
+desc>. Fields descriptors for the parameters, then for the return type.The only
+syntax here is the (), we don't need to separate them as we always know how much
+we need to read!
+
+\subsubsection{Slash-separated class name}
+References to classes are done like that: java/util/String (probably for
+historical reasons linked to how it is stored in the disk). These name are unique
+Let's imagine a "tricky" example:
+\begin{lstlisting}[language=Java]
+    package pkg;
+    class A {
+        static class X{...}
+        ...
+    }
+    package pkg;
+    class B extends A{...}
+\end{lstlisting}
+We could imagine two class name: pkg/A\$X and pkg/B\$X however, only the first
+one is valid!
