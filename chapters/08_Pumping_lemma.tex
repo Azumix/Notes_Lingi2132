@@ -63,7 +63,7 @@ And how to prove (just build the grammar, is that match it works)/disprove (pump
     really simple one like $L = a | b | c$. We just need to take a big enough p!
     (Like $p=2$ in this case).
 
-    \subsection{Why do we need $|x y | \leq p$ ?}
+    \subsection[Reasons]{Why do we need $|x y | \leq p$ ?}
         If we omit it, we could prove that $L = (^k a+ )^k$ to be regular which
         is obviously not the case!. We need central recursion to be bounded
         because of DFA state limit. The constraint ensures we're able to build a
