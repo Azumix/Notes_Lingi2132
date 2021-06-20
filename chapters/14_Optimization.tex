@@ -1,2 +1,218 @@
 \chapter{Optimization}
 \label{chap:optimization}
+In the previous chapter we have look at how the compiler can improve the
+performance.
+Cache utilization:
+\begin{itemize}
+    \item cache locality (access things stored
+    together at the same time)
+    \item Register allocation smartly (as we manage them!).
+    \item Avoid bloating the code cache (do not emmit a lot of instruction even
+    if could theoretically it could made the code faster in term of cycle
+    because they will pollute the code cache that will itself cause cache miss
+    which cost a lot of time!)
+    \item Avoid cacbe collision by disaligning memory
+    \item Escape analysis: don't allocate heap memory that will be deallocated
+    before leaving the function
+\end{itemize}
+CPU utilization (avoid pipeline stalls)
+\begin{itemize}
+    \item Instruction scheduling (move code to fill the pipeline (be care with
+    dependencies))
+    \item Partial evaluation (constant folding \& propagation (do things in
+    compiler time instead of runtime))
+    \item Dead code elimination (remove code that is unreachable can improve
+    cache and avoid loosing time in branching)
+    \item Common subexpression elimination (avoid recompute the same thing twice)
+    \item Auto-vectorization (automatically emit SMID instruction, data-level
+    parallelism SIMD) 
+    \item JIT: select the good instructions for the actual CPU
+\end{itemize}
+A third one is remove obstacles to optimizations: inlining (as optimization is
+done in function and not cross function, inlining allow more optimization). We
+can also "cheat" is to create two versions of the code that are easy to
+optimize. Create specialized version associated with inlining allow very nice
+optimization with respect of condition/previous functions, etc. Note that in we
+would like to avoid jumps and loop as much as possible (jump is costly!). The
+compiler really likes "basic blocks" (sequence of instructions with a single
+entry point and a single exit point, no jumps in it.)
+
+\section{Modern optimization process}
+Very few optimization is done on the AST, instead the AST is converted into IR
+and then, run through different passes the same IR can be use, or we can use a
+different one. Note that HotSpot and GraalVM's IR is NOT Java Bytecode. Phases
+can be repeated $inlining \rightarrow constant-folding \rightarrow dead-code
+elimination \rightarrow inlining \rightarrow ...$ optimizations enable further
+optimizations! Remember the example of chapter \ref{chap:compilation_pipeline}
+
+\section{Optimization Concepts}
+\subsection{Static Single Assignment Form (SSA)}
+\theoremstyle{definition}
+\begin{definition}[SSA]
+    Form where variables can only be assigned once, create new variables when needed.
+\end{definition}
+Almost every language are mutable (variables can be reassigned), SSA deals with
+that by creating new variables. It factors out work that is needed for many
+other optimizations (dead code elimination: if a variable is not use, skip
+compute/store it. It is also easier to reason in term of immutable variables.)
+There is an issue for code like this one:
+\begin{lstlisting}[language=Java]
+    if(cond) x = 1;
+    else x = 2;
+    print(x)
+\end{lstlisting}
+The SSA code would be:
+\begin{lstlisting}[escapeinside={(*}{*)}]
+    if(cond) x1 = 1;
+    else x2 = 2;
+    x3 = (*$\phi$*)(cond, x1, x2)
+    print(x3);
+\end{lstlisting}
+This is called a phi nodes, to reconcile branches. Note that the SSA form is not
+executed! It is just used to perform optimizations.
+\subsection{Data Flow and Control Flow}
+Data Dependence Graph (DDG) encode data dependencies ($x = y + z$ x depends of y
+and z). This is made possible thanks to SSA. What we what is to determine
+liveness of a data.
+\theoremstyle{definition}
+\begin{definition}[Liveness]
+    Tell us if the data is used/needed in the end.
+\end{definition}
+Control Flow Graph (CFG) encodes ordering relationship s between instructions it
+tells us what instruction has to happen before each other. It runs from the top
+to the bottom (except for loop) back edges for loop, splits and merges are used
+for condition. This graphs gives us the reachability
+\theoremstyle{definition}
+\begin{definition}[Reachability]
+    Tell us if an instruction can be reached or not.
+\end{definition}
+Both \textit{Liveness} and \textit{Reachability} are use to detect dead code
+(does not compute/store value that are never used nor instructions that are not
+reachable.) Note unreachability is not always the developer's fault, it can
+result of other optimizations. Look at the example in slide 10. We can see that
+the IR show the storage in the field but not in the local variable indeed, the
+field is part of the control flow graph while the local variable is not. Why?
+Because writing to a field is a side effect (other code can also modify it)
+while local variable can be move around.
+
+Note that, when designing a language designing our own optimizations is not a
+priority!
+
+\section{Other optimizations}
+\subsection{Partial Evaluation (PE)}
+Partial evaluation can refer to the Futurama projections the (take interpreter,
+feed it into a specializer to get a compiler). What we'll see it's the same idea
+in a smaller scale.
+\begin{itemize}
+    \item Constant folding and propagation (remove variable by there value)
+    \item Dead code elimination (if condition is always false, remove it a compilation time, remove never used assignment or unreachable code)
+    \item Bypassing virutal lookups (when we now the concrete type of a variable)
+    \item Removing runtime checks (if the array size and index are known we can
+    remove the checks) in dynamic language we can remove typecheck if we know
+    the type of the variable.
+\end{itemize}
+
+\subsection{Why does compiler hate jumps and loops?}
+Jumps may cause cache misses which, once again is a loose of time. Conditional
+jumps might cause branch mispredictions (pipeline stalls). It is also harder to
+optimize a basic block that have multiple predecessors.
+
+Concerning loops, the code can be executed a lot but we can only make assumption
+that hold in each iteration. Note that, in the other hands, compilers also love
+loops as programs spend a lot of time in hot loops (loops that are called
+often). Most of the optimizations are done in loop.
+
+\subsection{Loop optimizations}
+\subsubsection{Loop Invariant Code Motion (LICM)}
+    \begin{itemize}
+        \item The idea is to extract code from the loop (hoisting) (like an
+        foo=true assignment, that will be removed from every iteration)
+        \item Move code between iterations (global value numbering) (if x[i] and
+        x[i+1] are used in the same iteration move x[i+1] to the next iteration
+        to avoid new memory read)
+    \end{itemize}
+\subsubsection{Loop unrolling}
+\paragraph{Fully unroll} statically bounded loops (a for loop that call 3 times a functions
+will be unroll as three call to the function). 
+\paragraph{Peel off}
+We could also peel off the first iteration it will helps us to make assumption
+for the other iteration (can sometimes enable more optimizations).
+\paragraph{Loop inversion/rotation} instead of:
+\begin{lstlisting}[language=Java]
+    while(x) <body>
+\end{lstlisting}
+we will have:
+\begin{lstlisting}[language=Java]
+    if(x){
+        do{
+            <body>
+        } while(x);
+    }
+\end{lstlisting}
+It seems more complicated but it avoid jumps as the test is at the end of the loop!
+\paragraph{Loop fission and fusion}
+Improve locality by splitting/merging identically-bounded loops (see slide 15
+for example). \paragraph{Loop unswitching} instead of having a if else inside
+the loop, we will transform by if/else with a for loop in each statement. It
+makes sense as the loops takes more time to be executed than conditions.
+\paragraph{Identifying induction variables} the compiler try to identify
+induction variables, in the example on slide 15 the compiler is able to
+transform the MUL operation by a SUM because it understand how it works, of
+course, it this toy example a smart compiler would have figure the loop is
+useless and completely drop it.
+\section{Other}
+\subsection{Common sub-expression elimination}
+Avoid computing the same value twice. Note that it is only possible if the
+computation does not introduce side effects (writing to memory, System call,
+etc.), or its opposite rematerialization (to avoid read from memory, which can
+be slower).
+\subsubsection{Tail-call optimization}
+It converts tail recursive function to loops, it removes the stackoverflow risk
+and function call overhead.
+\subsubsection{Escape analysis}
+If an allocation does not outlive the function, allocate it on the stack instead
+of on the heap (allocation is expensive and touch new memory, which is bad for
+the cache).
+\subsubsection{Alias analysis}
+This is for language with pointers where we should ask ourself if two pointers
+can refer to (or overlap) the same memory region. If they can, we should be
+careful especially, we should wait for a write to finish before making an other
+one!
+\subsubsection{Peephole}
+Pattern based optimizations / strength reduction, it replace the use of an
+operator by the use of a simpler operator (for the CPU). See examples on slide
+17. Note that things like push followed by a pop can happen as a result of other
+optimizations.
+\section{Why don't we always inline?}
+The first reason is the executable size that will be generated if we would
+inline everything. Compilation time, even if we could optimize the code again
+and again, nowadays computer are fast (and developers expensive) so we don't
+want developers to loose time during the compilation. With a JIT the compilation
+time is a complete performance lost (time spend compiling is time not spend in
+the program but also, program is running as a slow version).
+
+However the main disadvantage is that, inlining create instructions, if we
+inline everything we will have a lot of instructions which will cause a lot of
+cache misses (which are very expensive).
+ 
+We have seen that inlining is used to optimize function, so we can we do if we
+don't do inlining? We can compute per-function properties:
+\begin{itemize}
+    \item Is the function recursive (directly or indirectly) it is useful cause
+    it gives hints on what we should optimize. Maybe we don't want to inline
+    recursive function as we know we won't be able to inline the all function.
+    \item Does it stores its parameters somewhere? Useful for escape analysis,
+    as if the function does not store its parameters, we can then escape analyze
+    them and allocate them on the stack instead of the heap.
+    \item Is it read-only? (does not write to any memory location) helps with
+    common sub-expression elimination.
+\end{itemize}
+\section{Summary}
+How can we improve compiler performances?
+\begin{itemize}
+    \item Improve cache utilization (cache locality (access things stored
+    together at the same time), cache occupation (make sure we don't put too
+    many things in the cache)).
+    \item Improve CPU utilization (if instructions and pipeline stalls)
+    \item Remove obstacles to optimizations (inline, basic blocks as big as possibles)
+\end{itemize}
